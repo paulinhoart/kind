@@ -3,6 +3,8 @@ Kind (Kubernetes In Docker) Com 3 nodes e Ingress.
 
 Contém Aplicação de exemplo com Deployment, Service, Ingress.
 
+Maiores detalhes dos componentes, recursos, consultar documentação (Referências). O intuito aqui é criar uma infra basica pronta para subir app e expor, tudo local. 
+
 
 # DIAGRAMA
 # DIAGRAMA
@@ -13,12 +15,16 @@ Contém Aplicação de exemplo com Deployment, Service, Ingress.
 
 ## Pré Requisitos
 WSL
+
 Docker no WSL
-Kubectl
+
+Kubectl - Instalar :
+
 ```bash
 $ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 $ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && rm kubectl
-$ kubectl  version --client
+#Validar, comando consulta versão 
+$ kubectl version --client
 Client Version: v1.33.4
 Kustomize Version: v5.6.0
 ```
@@ -44,6 +50,8 @@ Criar cluster com 1 control plane e 3 nodes.
 
 ```bash
 $ kind create cluster --config kind-config.yaml
+```
+```bash
 Creating cluster "kind" ...
  ✓ Ensuring node image (kindest/node:v1.33.1) 🖼
  ✓ Preparing nodes 📦 📦 📦 📦
@@ -68,6 +76,111 @@ CoreDNS is running at https://127.0.0.1:38611/api/v1/namespaces/kube-system/serv
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
+Control Plane e Nodes
+```bash
+$ kubectl get nodes
+NAME                 STATUS   ROLES           AGE    VERSION
+kind-control-plane   Ready    control-plane   100m   v1.33.1
+kind-worker          Ready    <none>          100m   v1.33.1
+kind-worker2         Ready    <none>          100m   v1.33.1
+kind-worker3         Ready    <none>          100m   v1.33.1
+```
+
+## Instalar CNI - Calico
+
+Para comunicação entre contanieres em diferentes nodes é preciso uma camada de rede, um CNI (Container Network Interface) que tem no Kind. Mas pode ocorrer problemas. Então vamos instalar o Calico, poderoso e muito utilizado CNI.
+```bash
+$ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.2/manifests/tigera-operator.yaml
+$ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.2/manifests/custom-resources.yaml
+```
+
+Aguardar todos pods ficar com status RUNNING.
+
+```bash
+$ watch kubectl get tigerastatus
+
+NAME        AVAILABLE   PROGRESSING   DEGRADED   SINCE
+apiserver   True        False         False      13m
+calico      True        False         False      13m
+goldmane    True        False         False      13m
+ippools     True        False         False      14m
+whisker     True        False         False      13m
+```
 
 ## Instalar ingress
+
+Vamos instalar o Ingress - Nginx
+
+```bash
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+```
+```bash
+namespace/ingress-nginx created
+serviceaccount/ingress-nginx created
+serviceaccount/ingress-nginx-admission created
+role.rbac.authorization.k8s.io/ingress-nginx created
+role.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+configmap/ingress-nginx-controller created
+service/ingress-nginx-controller created
+service/ingress-nginx-controller-admission created
+deployment.apps/ingress-nginx-controller created
+job.batch/ingress-nginx-admission-create created
+job.batch/ingress-nginx-admission-patch created
+ingressclass.networking.k8s.io/nginx created
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
+```
+Aguardar, e para acompanhar conferir se pod esta com status `RUNNING` no namespace `ingress-nginx`.
+
+```bash
+$ kubectl get pods -n ingress-nginx
+
+NAME                                      READY   STATUS    RESTARTS   AGE
+ingress-nginx-controller-bd44dc47-zrvn8   1/1     Running   0          7m20s
+```
+
+# Subindo um App Hello
+
+Vamos subir um App Hello para testar a infra (os 3 nodes) e o ingress.
+Vamos utilizar HPA, com mínimo 3 pods, vamos conseguir visualizar a distribuição dos pods nos nodes. 
+
+## Criar no namespace
+
+Criar um namespace dedicado para aplicação, organizar e facilitar consultas e visualizações.
+
+```bash
+$ kubectl apply -f app/namespace.yaml
+namespace/app-frontend created
+```
+Aplicando Yamls da aplicação:
+
+- app/deployment.yaml
+- app/service.yaml
+- app/hpa.yaml
+- app/ingress.yaml
+
+```bash
+$ kubectl apply -f app/deployment.yaml -f app/service.yaml -f app/hpa.yaml -f app/ingress.yaml -n app-frontend
+
+deployment.apps/hello-app created
+service/hello-svc created
+horizontalpodautoscaler.autoscaling/hello-hpa created
+ingress.networking.k8s.io/hello-ingress created
+```
+
+Consulta os pods, vai aparecer os 3 e cada um em um ``NODE``
+
+```bash
+$ kubectl get pods -n app-frontend -o wide
+
+NAME                         READY   STATUS    RESTARTS   AGE     IP           NODE           NOMINATED NODE   READINESS GATES
+hello-app-56b5d9d94b-6vl4f   1/1     Running   0          2m35s   10.244.3.4   kind-worker3   <none>           <none>
+hello-app-56b5d9d94b-ljpfg   1/1     Running   0          2m35s   10.244.2.5   kind-worker    <none>           <none>
+hello-app-56b5d9d94b-p4hnl   1/1     Running   0          2m35s   10.244.1.3   kind-worker2   <none>           <none>
+```
 

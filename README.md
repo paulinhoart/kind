@@ -15,7 +15,9 @@
 ## Pré Requisitos
 WSL - https://learn.microsoft.com/pt-br/windows/wsl/install
 
-Docker no WSL - https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+Docker no WSL
+- https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+- https://docs.docker.com/engine/install/linux-postinstall/
 
 Kubectl - Instalar :
 

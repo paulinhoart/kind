@@ -1,18 +1,21 @@
 # Kind com multiplos nodes e Ingress no WSL 
-Kind (Kubernetes In Docker) Com 3 nodes e Ingress.
+🚀 Kind (Kubernetes In Docker) Com 3 nodes e Ingress.
 
-Contém Aplicação de exemplo com Deployment, Service, Ingress.
+✅ Contém um App Hello (simples) com Deployment, Service, HPA e Ingress.
 
-Maiores detalhes dos componentes, recursos, consultar documentação (Referências). O intuito aqui é criar uma infra basica pronta para subir app e expor, tudo local. 
+⚠️ Maiores detalhes dos componentes, recursos, consultar documentação (Referências).
 
+💡 O intuito aqui é criar uma infra basica pronta para subir app e expor, tudo local.
 
-# Fluxograma
-<img src="fluxograma/fluxograma_macro.png" alt="Fluxograma do projeto" width="400"/>
+❌ Não usar em ambiente Produtivo.
+
+# Fluxograma 🖼️
+<img src="imagens/fluxograma_macro.png" alt="Fluxograma do projeto" width="400"/>
 
 ## Pré Requisitos
-WSL
+WSL - https://learn.microsoft.com/pt-br/windows/wsl/install
 
-Docker no WSL
+Docker no WSL - https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
 
 Kubectl - Instalar :
 
@@ -26,7 +29,7 @@ Kustomize Version: v5.6.0
 ```
 Não estar utilizando porta 80 e 443.
 
-## Baixar e Instalar o Kind
+## Infraestrutura - Kind e Ingress 🏗️ 🧱
 
 ```bash
 [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-amd64
@@ -86,6 +89,8 @@ kind-worker3         Ready    <none>          100m   v1.33.1
 
 Vamos instalar o Ingress - Nginx
 
+⚠️ Importante, este ingress-nginx.yaml foi ajustando para o Deployment ser criado dentro do kind-control-plane, onde as portas 80 / 443 estão expostas.
+
 ```bash
 $ kubectl apply -f ingress-controller/ingress-nginx.yaml
 ```
@@ -119,10 +124,11 @@ NAME                                        READY   STATUS    RESTARTS   AGE   I
 ingress-nginx-controller-6dc7cbc587-b5rgr   1/1     Running   0          11h   10.244.0.5   kind-control-plane   <none>           <none>
 ```
 
-# Subindo um App Hello
+
+# 🚀 Subindo um App Hello 🚀 
 
 Vamos subir um App Hello para testar a infra (os 3 nodes) e o ingress.
-Vamos utilizar HPA, com mínimo 3 pods, vamos conseguir visualizar a distribuição dos pods nos nodes. 
+Utilizaremos HPA com mínimo 3 replicas/pods, assim visualizar a distribuição dos pods nos nodes 🔥. 
 
 ## Criar no namespace
 
@@ -132,7 +138,11 @@ Criar um namespace dedicado para aplicação, organizar e facilitar consultas e 
 $ kubectl apply -f app/namespace.yaml
 namespace/app-frontend created
 ```
-Aplicando Yamls da aplicação:
+## Subindo app Hello
+
+Aplicando Yamls da aplicação.
+
+❗Importante, antes de aplicar, faça leitura dos Yamls, para conhecimento.
 
 - app/deployment.yaml
 - app/service.yaml
@@ -148,7 +158,7 @@ horizontalpodautoscaler.autoscaling/hello-hpa created
 ingress.networking.k8s.io/hello-ingress created
 ```
 
-Consulta os pods, vai aparecer os 3 e cada um em um `NODE`
+Consulta os pods, vai aparecer os 3 e cada um em um `NODE` 🔥
 
 ```bash
 $ kubectl get pods -n app-frontend -o wide
@@ -158,4 +168,29 @@ hello-app-56b5d9d94b-6vl4f   1/1     Running   0          2m35s   10.244.3.4   k
 hello-app-56b5d9d94b-ljpfg   1/1     Running   0          2m35s   10.244.2.5   kind-worker    <none>           <none>
 hello-app-56b5d9d94b-p4hnl   1/1     Running   0          2m35s   10.244.1.3   kind-worker2   <none>           <none>
 ```
+
+## Resultado ✅
+
+Via browser chamar http://localhost
+
+<img src="imagens/browser.png" alt="Fluxograma do projeto"/>
+
+
+# Referencias e Documentações 📚
+
+Instalar WSL -> https://learn.microsoft.com/pt-br/windows/wsl/install
+
+Instalar Docker no WSL -> https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+
+Permissões executar Docker -> https://docs.docker.com/engine/install/linux-postinstall/
+
+
+# Sugestões 💡 ✨
+
+Pode utilizar esta base de infraestrutura para instalar, testar, componentes, tais como:
+- Prometheus
+- Grafana
+- Istio
+
+Entre outros.
 

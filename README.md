@@ -6,12 +6,8 @@ Contém Aplicação de exemplo com Deployment, Service, Ingress.
 Maiores detalhes dos componentes, recursos, consultar documentação (Referências). O intuito aqui é criar uma infra basica pronta para subir app e expor, tudo local. 
 
 
-# DIAGRAMA
-# DIAGRAMA
-# DIAGRAMA
-# DIAGRAMA
-# DIAGRAMA
-
+# Fluxograma
+<img src="fluxograma/fluxograma_macro.png" alt="Fluxograma do projeto" width="400"/>
 
 ## Pré Requisitos
 WSL
@@ -115,12 +111,12 @@ ingressclass.networking.k8s.io/nginx created
 validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
 ```
 Aguardar, e para acompanhar conferir se pod esta com status `RUNNING` no namespace `ingress-nginx`.
+Importante, validar que esta executando no node control-plane / kind-control-plane
 
 ```bash
-$ kubectl get pods -n ingress-nginx
-
-NAME                                      READY   STATUS    RESTARTS   AGE
-ingress-nginx-controller-bd44dc47-zrvn8   1/1     Running   0          7m20s
+$ $ kubectl get pods -n ingress-nginx -o wide
+NAME                                        READY   STATUS    RESTARTS   AGE   IP           NODE                 NOMINATED NODE   READINESS GATES
+ingress-nginx-controller-6dc7cbc587-b5rgr   1/1     Running   0          11h   10.244.0.5   kind-control-plane   <none>           <none>
 ```
 
 # Subindo um App Hello

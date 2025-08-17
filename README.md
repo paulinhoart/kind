@@ -86,33 +86,12 @@ kind-worker2         Ready    <none>          100m   v1.33.1
 kind-worker3         Ready    <none>          100m   v1.33.1
 ```
 
-## Instalar CNI - Calico
-
-Para comunicação entre contanieres em diferentes nodes é preciso uma camada de rede, um CNI (Container Network Interface) que tem no Kind. Mas pode ocorrer problemas. Então vamos instalar o Calico, poderoso e muito utilizado CNI.
-```bash
-$ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.2/manifests/tigera-operator.yaml
-$ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.2/manifests/custom-resources.yaml
-```
-
-Aguardar todos pods ficar com status RUNNING.
-
-```bash
-$ watch kubectl get tigerastatus
-
-NAME        AVAILABLE   PROGRESSING   DEGRADED   SINCE
-apiserver   True        False         False      13m
-calico      True        False         False      13m
-goldmane    True        False         False      13m
-ippools     True        False         False      14m
-whisker     True        False         False      13m
-```
-
 ## Instalar ingress
 
 Vamos instalar o Ingress - Nginx
 
 ```bash
-$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+$ kubectl apply -f ingress-controller/ingress-nginx.yaml
 ```
 ```bash
 namespace/ingress-nginx created
@@ -173,7 +152,7 @@ horizontalpodautoscaler.autoscaling/hello-hpa created
 ingress.networking.k8s.io/hello-ingress created
 ```
 
-Consulta os pods, vai aparecer os 3 e cada um em um ``NODE``
+Consulta os pods, vai aparecer os 3 e cada um em um `NODE`
 
 ```bash
 $ kubectl get pods -n app-frontend -o wide

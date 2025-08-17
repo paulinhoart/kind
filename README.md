@@ -1,4 +1,4 @@
-# Kind no WSL 
+# Kind com multiplos nodes e Ingress no WSL 
 Kind (Kubernetes In Docker) Com 3 nodes e Ingress.
 
 Contém Aplicação de exemplo com Deployment, Service, Ingress.
